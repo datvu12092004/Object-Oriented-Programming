@@ -46,7 +46,6 @@ class LoginStaffGUI(QWidget):
 
         # ===== LAYOUT =====
         formLayout = QFormLayout()
-        formLayout.setLabelAlignment(Qt.AlignLeft)
         formLayout.addRow("Mã nhân viên:", self.txtMaNV)
         formLayout.addRow("Mật khẩu:", self.txtPass)
 
@@ -74,13 +73,35 @@ class LoginStaffGUI(QWidget):
         mat_khau = self.txtPass.text().strip()
 
         if not ma_nv or not mat_khau:
-            QMessageBox.warning(self, "Thiếu thông tin", "Vui lòng nhập đầy đủ thông tin")
+            QMessageBox.warning(
+                self,
+                "Thiếu thông tin",
+                "Vui lòng nhập đầy đủ mã nhân viên và mật khẩu"
+            )
             return
 
         nv = login_staff(ma_nv, mat_khau)
-        if nv:
-            self.main = TellerMainWindow(nv)
-            self.main.show()
-            self.close()
-        else:
-            QMessageBox.warning(self, "Đăng nhập thất bại", "Sai mã nhân viên hoặc mật khẩu")
+
+        if not nv:
+            QMessageBox.warning(
+                self,
+                "Đăng nhập thất bại",
+                "Sai mã nhân viên hoặc mật khẩu"
+            )
+            return
+
+        # ===== PHÂN QUYỀN THEO CHỨC VỤ =====
+        chuc_vu = nv[5]   # Cột ChucVu trong bảng NhanVien
+
+        if chuc_vu != "Giao dịch":
+            QMessageBox.warning(
+                self,
+                "Từ chối truy cập",
+                "Tài khoản của bạn không có quyền truy cập các chức năng giao dịch"
+            )
+            return
+
+        # ===== ĐÚNG VAI TRÒ → MỞ GIAO DIỆN =====
+        self.main = TellerMainWindow(nv)
+        self.main.show()
+        self.close()
